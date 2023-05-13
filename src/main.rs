@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use std::{fs::{File, self}, io::Write};
+use serde::{Deserialize, Serialize}; // For persistence.
+use std::{fs::{File, self}, io::Write}; // For file IO
 
-
+// The Task struct
 #[derive(Serialize, Deserialize)]
 struct Task {
     id: u32,
@@ -16,6 +16,7 @@ impl Task {
     
 }
 
+// Used for argument parsing. The 0th arg is the program's name, 1st is list/add/complete and the others are returned by this function.
 fn get_elements_after_idx(vector: Vec<String>, target_idx: usize) ->Vec<String> {
     let iterator = vector.iter();
     let mut ans: Vec<String> = Vec::new();
@@ -28,11 +29,13 @@ fn get_elements_after_idx(vector: Vec<String>, target_idx: usize) ->Vec<String> 
     return ans;
 }
 
+// Joins the remaining args into onw String.
 fn concat_strings(strings: Vec<String>) -> String {
     let ans: String = strings.join(" ");
     return ans;
 }
 
+// Persist into json.
 fn save(arr: Vec<Task>) {
     let data = match serde_json::to_string(&arr){
         Err(why) => panic!("Crikey, I could not serialize data! Message: {why}", why=why),
@@ -45,6 +48,7 @@ fn save(arr: Vec<Task>) {
     let _res = write!(file, "{}", data);
 }
 
+// Load data from json.
 fn load() -> Vec<Task> {
     let input: String = match fs::read_to_string("tasks.json") {
         Err(_why) => "[]".to_owned(),
@@ -72,6 +76,7 @@ fn main() {
         std::process::exit(-1);
     }
     else if mode == 1 {
+        // List tasks.
         let iter = tasks.iter();
         println!("Completed tasks:");
         for task in iter {
@@ -88,15 +93,18 @@ fn main() {
         }
     }
     else {
+        // These options require additional args.
         if args.len() < 3 {
             eprintln!("Crikey, too few arguments for that option.");
             std::process::exit(-1);
         }
         let other_text = concat_strings(get_elements_after_idx(args, 1));
         if mode == 2 {
+            // Add a task.
             tasks.push(Task::new(tasks.len() as u32, other_text));
         }
         else {
+            // Complete a task.
             let task_id: usize = other_text.parse().expect("Crikey, Invalid task ID.");
             if task_id >= tasks.len() {
                 eprintln!("Crikey, I could not find that task.");
